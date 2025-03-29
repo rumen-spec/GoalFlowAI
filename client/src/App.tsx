@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, RequireAuth, useAuth } from "./lib/auth";
+import NavBar from "@/components/NavBar";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -18,17 +19,22 @@ function Router() {
   }
 
   return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/dashboard">
-        <RequireAuth>
-          <Dashboard />
-        </RequireAuth>
-      </Route>
-      <Route path="/" component={Home} />
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <NavBar />
+      <main className="flex-grow">
+        <Switch>
+          <Route path="/login" component={Login} />
+          <Route path="/dashboard">
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          </Route>
+          <Route path="/" component={Home} />
+          {/* Fallback to 404 */}
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+    </div>
   );
 }
 
