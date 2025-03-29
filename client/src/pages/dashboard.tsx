@@ -1,78 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Goal, Task } from "@/lib/types";
+import { Goal as GoalType, Task } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-
-interface User {
-  name?: string;
-  email: string;
-  isLoggedIn: boolean;
-}
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { Goal } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      setLocation('/login');
-      return;
-    }
-
-    setUser(JSON.parse(storedUser));
-
-    // Simulate fetching goals from API
-    setTimeout(() => {
-      // Fake data for demonstration
-      const mockGoals = [
-        {
-          id: 1,
-          title: "Learn JavaScript",
-          commitmentLevel: "high",
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // 14 days ago
-          progress: 75,
-          tasks: 12,
-          completedTasks: 9,
-        },
-        {
-          id: 2,
-          title: "Run a marathon",
-          commitmentLevel: "medium",
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
-          progress: 30,
-          tasks: 10,
-          completedTasks: 3,
-        },
-        {
-          id: 3,
-          title: "Read 12 books this year",
-          commitmentLevel: "low",
-          createdAt: new Date(),
-          progress: 5,
-          tasks: 20,
-          completedTasks: 1,
-        }
-      ];
-      
-      setGoals(mockGoals);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    toast({
-      title: "Logged out successfully",
-    });
-    setLocation('/login');
+  
+  // Fetch user goals
+  const { 
+    data: goals = [], 
+    isLoading,
+    error
+  } = useQuery<Goal[]>({
+    queryKey: ["/api/goals"],
+    enabled: !!user,
+  });
+  
+  // We'll calculate these for each goal
+  const calculateProgress = (goal: Goal) => {
+    // In a real app, this would be based on completed tasks
+    // For now, we'll use a random percentage
+    return Math.floor(Math.random() * 100);
+  };
+  
+  const getTaskStats = (goal: Goal) => {
+    // Simulating task stats
+    const total = Math.floor(Math.random() * 20) + 5;
+    const completed = Math.floor(Math.random() * total);
+    return { total, completed };
   };
 
   const handleCreateGoal = () => {
@@ -152,40 +116,47 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {goals.map((goal) => (
-              <Card key={goal.id} className="overflow-hidden hover:shadow-md transition">
-                <CardHeader className="bg-gray-50 border-b px-6 py-4">
-                  <CardTitle className="text-lg flex justify-between items-center">
-                    <span className="truncate">{goal.title}</span>
-                    <Badge commitment={goal.commitmentLevel} />
-                  </CardTitle>
-                  <p className="text-xs text-gray-500 mt-1">Created on {formatDate(goal.createdAt)}</p>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-1 text-sm">
-                      <span>Progress</span>
-                      <span className="font-medium">{goal.progress}%</span>
+            {goals.map((goal) => {
+              const progress = calculateProgress(goal);
+              const { total: tasks, completed: completedTasks } = getTaskStats(goal);
+              
+              return (
+                <Card key={goal.id} className="overflow-hidden hover:shadow-md transition">
+                  <CardHeader className="bg-gray-50 border-b px-6 py-4">
+                    <CardTitle className="text-lg flex justify-between items-center">
+                      <span className="truncate">{goal.title}</span>
+                      <Badge commitment={goal.commitmentLevel} />
+                    </CardTitle>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Created on {formatDate(goal.createdAt ?? new Date())}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-1 text-sm">
+                        <span>Progress</span>
+                        <span className="font-medium">{progress}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <Progress value={goal.progress} className="h-2" />
-                  </div>
-                  <div className="text-sm text-gray-500 mb-6">
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
-                      <span>{goal.completedTasks} of {goal.tasks} tasks completed</span>
+                    <div className="text-sm text-gray-500 mb-6">
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span>{completedTasks} of {tasks} tasks completed</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)}>
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)}>
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
