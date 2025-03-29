@@ -1,4 +1,8 @@
 import { users, type User, type InsertUser, goals, type Goal, type InsertGoal, tasks, type Task, type InsertTask } from "@shared/schema";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
   // User operations
@@ -15,11 +19,15 @@ export interface IStorage {
   deleteGoal(id: number): Promise<boolean>;
 
   // Task operations
+  getTask(id: number): Promise<Task | undefined>;
   getTasksByGoalId(goalId: number): Promise<Task[]>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
   completeTask(id: number, completed: boolean): Promise<Task | undefined>;
+  
+  // Session store
+  sessionStore: any;
 }
 
 export class MemStorage implements IStorage {
@@ -29,6 +37,7 @@ export class MemStorage implements IStorage {
   currentUserId: number;
   currentGoalId: number;
   currentTaskId: number;
+  sessionStore: any;
 
   constructor() {
     this.users = new Map();
@@ -37,6 +46,9 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentGoalId = 1;
     this.currentTaskId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
   }
 
   // User methods
@@ -58,7 +70,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      googleId: insertUser.googleId || null,
+      email: insertUser.email || null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -79,6 +96,7 @@ export class MemStorage implements IStorage {
     const goal: Goal = { 
       ...insertGoal, 
       id, 
+      userId: insertGoal.userId || null,
       createdAt: new Date() 
     };
     this.goals.set(id, goal);
@@ -99,6 +117,10 @@ export class MemStorage implements IStorage {
   }
 
   // Task methods
+  async getTask(id: number): Promise<Task | undefined> {
+    return this.tasks.get(id);
+  }
+  
   async getTasksByGoalId(goalId: number): Promise<Task[]> {
     return Array.from(this.tasks.values()).filter(
       (task) => task.goalId === goalId,
@@ -107,7 +129,14 @@ export class MemStorage implements IStorage {
 
   async createTask(insertTask: InsertTask): Promise<Task> {
     const id = this.currentTaskId++;
-    const task: Task = { ...insertTask, id, completed: false };
+    const task: Task = { 
+      ...insertTask, 
+      id, 
+      goalId: insertTask.goalId || null,
+      description: insertTask.description || null,
+      dueDate: insertTask.dueDate || null,
+      completed: false 
+    };
     this.tasks.set(id, task);
     return task;
   }

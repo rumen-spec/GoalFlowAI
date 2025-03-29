@@ -1,9 +1,10 @@
 import { Link } from "wouter";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function NavBar() {
-  const { user, logout } = useAuth();
+  const { user, logoutMutation, isLoading } = useAuth();
 
   return (
     <header className="bg-white border-b">
@@ -34,39 +35,41 @@ export default function NavBar() {
           <Link href="/" className="text-sm font-medium text-gray-700 hover:text-primary transition">
             Home
           </Link>
-          <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-primary transition">
-            Dashboard
-          </Link>
-          <a 
-            href="https://github.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-gray-700 hover:text-primary transition"
-          >
-            GitHub
-          </a>
+          {user && (
+            <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-primary transition">
+              Dashboard
+            </Link>
+          )}
         </nav>
         
         <div className="flex items-center space-x-4">
-          {user ? (
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          ) : user ? (
             <div className="flex items-center space-x-4">
               <div className="hidden md:block">
-                <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
+                <p className="text-sm font-medium text-gray-900">{user.username}</p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={logout}
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
               >
-                Logout
+                {logoutMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Logout'
+                )}
               </Button>
             </div>
           ) : (
-            <Link href="/login">
-              <a className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition">
-                Login
-              </a>
+            <Link 
+              href="/auth" 
+              className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition"
+            >
+              Login
             </Link>
           )}
         </div>
