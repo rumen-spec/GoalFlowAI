@@ -60,7 +60,7 @@ export default function ChecklistView({ plan }: ChecklistViewProps) {
             variant={week === currentWeek ? "default" : "ghost"}
             size="sm"
             className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap rounded-none ${
-              week === currentWeek ? 'border-b-2 border-primary' : ''
+              week === currentWeek ? 'bg-purple-500 hover:bg-purple-600 text-white' : ''
             }`}
             onClick={() => setCurrentWeek(week)}
           >

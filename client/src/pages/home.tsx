@@ -67,7 +67,7 @@ export default function Home() {
             </svg>
 
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900"><span className="text-purple-500">GoalFlow</span> AI</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900"><span className="text-purple-500">Palendr</span> AI</h1>
         </div>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Turn your personal goals into actionable timelines — without overwhelm. 
@@ -97,7 +97,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} GoalFlow AI. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Palendr. All rights reserved.</p>
         <div className="mt-2 flex justify-center space-x-4">
           <a href="#" className="hover:text-gray-700">Terms</a>
           <a href="#" className="hover:text-gray-700">Privacy</a>

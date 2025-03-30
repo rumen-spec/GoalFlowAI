@@ -17,7 +17,7 @@ export default function NavBar() {
 
           </div>
           <Link href="/" className="font-bold text-xl text-gray-900 hover:text-primary transition">
-            <span className="text-purple-500">GoalFlow</span> AI
+            <span className="text-purple-500">Palendr</span>
           </Link>
         </div>
         
