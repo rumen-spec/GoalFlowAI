@@ -140,8 +140,8 @@ export default function GoalForm({ onSubmit, isProcessing, onGoogleSignIn, isLog
                           variant="outline"
                           className={`flex h-auto flex-col items-center justify-center p-4 rounded-lg border transition ${
                             field.value === level 
-                              ? 'bg-primary/10 border-primary/30 text-primary' 
-                              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-purple-100 border-purple-400 text-purple-900' 
+                              : 'bg-white border-gray-200 text-gray-700 hover:border-purple-400'
                           }`}
                           onClick={() => field.onChange(level)}
                         >
@@ -198,8 +198,8 @@ export default function GoalForm({ onSubmit, isProcessing, onGoogleSignIn, isLog
                           variant="outline"
                           className={`flex h-auto flex-col items-center justify-center p-4 rounded-lg border transition ${
                             field.value === format 
-                              ? 'bg-primary/10 border-primary/30 text-primary' 
-                              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-purple-100 border-purple-400 text-purple-900' 
+                              : 'bg-white border-gray-200 text-gray-700 hover:border-purple-400'
                           }`}
                           onClick={() => field.onChange(format)}
                         >
@@ -252,7 +252,7 @@ export default function GoalForm({ onSubmit, isProcessing, onGoogleSignIn, isLog
               <div className="flex items-center justify-end">
                 <Button
                   type="submit"
-                  className="w-full md:w-auto bg-primary hover:bg-primary/90 text-white font-medium rounded-lg px-6 py-3 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition flex items-center justify-center"
+                  className="w-full md:w-auto bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg px-6 py-3 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition flex items-center justify-center"
                   disabled={isProcessing}
                 >
                   {isProcessing ? (
