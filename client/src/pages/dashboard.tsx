@@ -115,13 +115,13 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-1">Track and manage your personal goals</p>
             </div>
-            <Button onClick={handleCreateGoal} size="default" className="bg-purple-500 hover:bg-purple-600">
+            {/* <Button onClick={handleCreateGoal} size="default" className="bg-purple-500 hover:bg-purple-600">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
               Create New Goal
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
@@ -149,6 +149,7 @@ export default function Dashboard() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {goals.map((goal) => {
+              console.log(goal)
               const progress = calculateProgress(goal);
               const { total: tasks, completed: completedTasks } = getTaskStats(goal);
               

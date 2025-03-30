@@ -138,6 +138,8 @@ export class MemStorage implements IStorage {
       completed: false 
     };
     this.tasks.set(id, task);
+
+    // console.log(this.tasks)
     return task;
   }
 
