@@ -1,24 +1,81 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { Goal, Task } from "@shared/schema";
+
+interface GoalWithTasks extends Goal {
+  tasks?: Task[];
+  startDate: Date;
+  endDate: Date;
+  description?: string;
+}
+
+// Reuse the same progress calculation functions from dashboard
+const calculateProgress = (goal: GoalWithTasks) => {
+  if (!goal.tasks?.length) return 0;
+  const completedTasks = goal.tasks.filter(task => task.completed).length;
+  return (completedTasks / goal.tasks.length) * 100;
+};
+
+const getTaskStats = (goal: GoalWithTasks) => {
+  const total = goal.tasks?.length || 0;
+  const completed = goal.tasks?.filter(task => task.completed).length || 0;
+  return { total, completed };
+};
 
 export default function GoalView() {
-  const [, params] = useParams();
+  const params = useParams();
   const goalId = parseInt(params?.id || "0");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: goal, isLoading, error } = useQuery({
+  const { data: goal, isLoading, error } = useQuery<GoalWithTasks>({
     queryKey: ["goal", goalId],
-    queryFn: () => apiRequest(`/api/goals/${goalId}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/goals/${goalId}`, "GET");
+      return response.json();
+    },
     enabled: !isNaN(goalId),
   });
+
+  const taskMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number | undefined, completed: boolean }) => {
+      if (!id) return null;
+      const response = await apiRequest(`/api/tasks/${id}/complete`, "PATCH", {
+        body: JSON.stringify({ completed }),
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goal", goalId] });
+      toast({
+        title: "Success",
+        description: "Task updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update task",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleTaskToggle = (taskId: number | undefined, currentCompleted: boolean) => {
+    if (!taskId) return;
+    taskMutation.mutate({ id: taskId, completed: !currentCompleted });
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -38,6 +95,9 @@ export default function GoalView() {
     );
   }
 
+  const progressPercentage = calculateProgress(goal);
+  const { total: totalTasks, completed: completedTasks } = getTaskStats(goal);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Card>
@@ -45,7 +105,7 @@ export default function GoalView() {
           <CardTitle className="text-2xl font-bold text-gray-900">{goal.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Description</h3>
               <p className="mt-2 text-gray-600">{goal.description}</p>
@@ -60,20 +120,39 @@ export default function GoalView() {
                 {format(new Date(goal.startDate), "MMMM d, yyyy")} - {format(new Date(goal.endDate), "MMMM d, yyyy")}
               </p>
             </div>
+
             <div>
-              <h3 className="text-lg font-semibold text-gray-700">Tasks</h3>
-              <ul className="mt-2 space-y-2">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-700">Progress</h3>
+                <span className="text-sm text-gray-600">{progressPercentage.toFixed(0)}% Complete</span>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Tasks</h3>
+              <ul className="space-y-3">
                 {goal.tasks?.map((task) => (
-                  <li key={task.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                  <li key={task.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <Checkbox
                       checked={task.completed}
-                      className="h-4 w-4 rounded border-gray-300 text-purple-500 focus:ring-purple-500"
-                      readOnly
+                      onCheckedChange={() => handleTaskToggle(task.id, task.completed)}
+                      className="mt-1"
                     />
-                    <span className="text-gray-600">
-                      {task.title} - Due {format(new Date(task.dueDate), "MMMM d, yyyy")}
-                    </span>
+                    <div className="flex-1">
+                      <p className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        {task.title}
+                      </p>
+                      {task.description && (
+                        <p className="mt-1 text-sm text-gray-600">{task.description}</p>
+                      )}
+                      <div className="mt-2 flex items-center text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Due {task.dueDate ? format(new Date(task.dueDate), "MMMM d, yyyy") : "No due date"}</span>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
