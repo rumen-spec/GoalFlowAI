@@ -19,11 +19,32 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/goals", goal);
       return response.json();
     },
-    onSuccess: async (data) => {
-      // Since we don't have a real AI, we'll simulate the plan generation
+    onSuccess: async (savedGoal) => {
+      // Generate the plan with AI
       if(currentGoal) {
-        const plan = await generatePlanTimeline(currentGoal)
-        if(plan) setGeneratedPlan(plan);
+        const plan = await generatePlanTimeline(currentGoal);
+        if(plan) {
+          setGeneratedPlan(plan);
+          
+          // Save each task to the database
+          if (plan.tasks && plan.tasks.length > 0) {
+            await Promise.all(plan.tasks.map(async (task) => {
+              try {
+                // Add the goal ID to each task
+                const taskToSave = {
+                  ...task,
+                  goalId: savedGoal.id,
+                  // Convert date object back to string for API
+                  dueDate: task.dueDate ? task.dueDate.toISOString().split('T')[0] : undefined
+                };
+                
+                await apiRequest("POST", `/api/goals/${savedGoal.id}/tasks`, taskToSave);
+              } catch (error) {
+                console.error("Error saving task:", error);
+              }
+            }));
+          }
+        }
       }
       setShowResults(true);
     },

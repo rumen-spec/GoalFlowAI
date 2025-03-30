@@ -48,8 +48,11 @@ export default function GoalView() {
   const { data: tasks = [], isLoading: isTasksLoading, error: tasksError } = useQuery<Task[]>({
     queryKey: ["goal", goalId, "tasks"],
     queryFn: async () => {
+      console.log(`Fetching tasks for goal ${goalId}`);
       const response = await apiRequest("GET", `/api/goals/${goalId}/tasks`);
-      return response.json();
+      const data = await response.json();
+      console.log("Tasks data received:", data);
+      return data;
     },
     enabled: !isNaN(goalId) && !!goal,
   });
