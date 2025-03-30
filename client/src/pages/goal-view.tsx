@@ -38,7 +38,7 @@ export default function GoalView() {
   const { data: goal, isLoading: isGoalLoading, error: goalError } = useQuery<Goal>({
     queryKey: ["goal", goalId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/goals/${goalId}`, "GET");
+      const response = await apiRequest("GET", `/api/goals/${goalId}`);
       return response.json();
     },
     enabled: !isNaN(goalId),
@@ -48,7 +48,7 @@ export default function GoalView() {
   const { data: tasks = [], isLoading: isTasksLoading, error: tasksError } = useQuery<Task[]>({
     queryKey: ["goal", goalId, "tasks"],
     queryFn: async () => {
-      const response = await apiRequest(`/api/goals/${goalId}/tasks`, "GET");
+      const response = await apiRequest("GET", `/api/goals/${goalId}/tasks`);
       return response.json();
     },
     enabled: !isNaN(goalId) && !!goal,
@@ -66,7 +66,7 @@ export default function GoalView() {
   const taskMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number | undefined, completed: boolean }) => {
       if (!id) return null;
-      const response = await apiRequest(`/api/tasks/${id}/complete`, "PATCH", {
+      const response = await apiRequest("PATCH", `/api/tasks/${id}/complete`, {
         body: JSON.stringify({ completed }),
       });
       return response.json();

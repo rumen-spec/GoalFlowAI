@@ -36,7 +36,7 @@ export default function Dashboard() {
         // Create promises for each goal's tasks
         const promises = goals.map(async (goal) => {
           try {
-            const response = await apiRequest(`/api/goals/${goal.id}/tasks`, "GET");
+            const response = await apiRequest("GET", `/api/goals/${goal.id}/tasks`);
             const tasks = await response.json();
             result[goal.id!] = tasks;
           } catch (error) {
