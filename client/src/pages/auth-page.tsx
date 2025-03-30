@@ -74,7 +74,9 @@ export default function AuthPage() {
     <div className="flex min-h-screen">
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold mb-8 text-center">GoalFlow AI</h1>
+        <div className="flex items-center justify-center mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900"><span className="text-purple-500">Palendr</span></h1>
+        </div>
           
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -121,7 +123,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full bg-purple-500 hover:bg-purple-600" 
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? (
@@ -194,7 +196,7 @@ export default function AuthPage() {
                       />
                       <Button 
                         type="submit" 
-                        className="w-full" 
+                        className="w-full bg-purple-500 hover:bg-purple-600" 
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? (
@@ -217,9 +219,9 @@ export default function AuthPage() {
       
       <div className="hidden lg:flex flex-1 bg-primary/10 items-center justify-center p-12">
         <div className="max-w-lg text-center">
-          <h2 className="text-4xl font-bold mb-4">Plan Your Progress</h2>
+          <h2 className="text-4xl font-bold mb-4">Plan Your <span className="text-purple-500 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-purple-500">Progress</span></h2>
           <p className="text-xl mb-6">
-            GoalFlow AI helps you turn your goals into actionable timelines based on your commitment level.
+            Palendr helps you turn your goals into actionable timelines based on your commitment level.
           </p>
           <div className="space-y-4">
             <div className="bg-background p-4 rounded-lg">

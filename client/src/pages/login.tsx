@@ -143,7 +143,7 @@ export default function Login() {
                 <line x1="12" y1="22" x2="12" y2="12" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">GoalFlow AI</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Palendr</h1>
           </div>
           <p className="text-gray-600">Sign in to access your goals and track your progress</p>
         </div>
