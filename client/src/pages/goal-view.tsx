@@ -69,9 +69,7 @@ export default function GoalView() {
   const taskMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number | undefined, completed: boolean }) => {
       if (!id) return null;
-      const response = await apiRequest("PATCH", `/api/tasks/${id}/complete`, {
-        body: JSON.stringify({ completed }),
-      });
+      const response = await apiRequest("PATCH", `/api/tasks/${id}/complete`, { completed });
       return response.json();
     },
     onSuccess: () => {
