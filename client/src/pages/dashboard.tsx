@@ -83,7 +83,7 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-1">Track and manage your personal goals</p>
             </div>
-            <Button onClick={handleCreateGoal} size="default">
+            <Button onClick={handleCreateGoal} size="default" className="bg-purple-500 hover:bg-purple-600">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -111,7 +111,7 @@ export default function Dashboard() {
               </div>
               <h3 className="text-lg font-medium mb-2">No goals yet</h3>
               <p className="text-gray-500 mb-6">Create your first goal to get started</p>
-              <Button onClick={handleCreateGoal}>Create New Goal</Button>
+              <Button onClick={handleCreateGoal} className="bg-purple-500 hover:bg-purple-600">Create New Goal</Button>
             </CardContent>
           </Card>
         ) : (
@@ -149,7 +149,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)}>
+                      <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)} className="bg-purple-500 hover:bg-purple-600 text-white border-purple-500">
                         View Details
                       </Button>
                     </div>

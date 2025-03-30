@@ -219,7 +219,7 @@ export default function AuthPage() {
       
       <div className="hidden lg:flex flex-1 bg-primary/10 items-center justify-center p-12">
         <div className="max-w-lg text-center">
-          <h2 className="text-4xl font-bold mb-4">Plan Your <span className="text-purple-500 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-purple-500">Progress</span></h2>
+          <h2 className="text-4xl font-bold mb-4">Plan Your <span className="text-purple-500">Progress</span></h2>
           <p className="text-xl mb-6">
             Palendr helps you turn your goals into actionable timelines based on your commitment level.
           </p>
