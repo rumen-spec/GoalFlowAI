@@ -3,12 +3,13 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Goal as GoalType, Task } from "@/lib/types";
+import { Goal as GoalType, Task as TaskType } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { Goal } from "@shared/schema";
+import { Goal, Task } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { user, logoutMutation } = useAuth();
@@ -25,18 +26,53 @@ export default function Dashboard() {
     enabled: !!user,
   });
   
-  // We'll calculate these for each goal
+  // Query the tasks for each goal
+  const { data: tasksByGoal = {}, isLoading: isLoadingTasks } = useQuery<Record<number, Task[]>>({
+    queryKey: ["/api/goals/tasks"],
+    queryFn: async () => {
+      const result: Record<number, Task[]> = {};
+      // Only fetch tasks if we have goals
+      if (goals && goals.length > 0) {
+        // Create promises for each goal's tasks
+        const promises = goals.map(async (goal) => {
+          try {
+            const response = await apiRequest(`/api/goals/${goal.id}/tasks`, "GET");
+            const tasks = await response.json();
+            result[goal.id!] = tasks;
+          } catch (error) {
+            console.error(`Error fetching tasks for goal ${goal.id}:`, error);
+            result[goal.id!] = [];
+          }
+        });
+        
+        // Wait for all promises to resolve
+        await Promise.all(promises);
+      }
+      return result;
+    },
+    enabled: !!goals && goals.length > 0,
+  });
+
+  // Calculate progress based on completed tasks
   const calculateProgress = (goal: Goal) => {
-    // In a real app, this would be based on completed tasks
-    // For now, we'll use a random percentage
-    return Math.floor(Math.random() * 100);
+    if (!goal.id || !tasksByGoal[goal.id] || tasksByGoal[goal.id].length === 0) {
+      return 0; // No tasks means 0% progress
+    }
+    
+    const tasks = tasksByGoal[goal.id];
+    const completedTasks = tasks.filter(task => task.completed).length;
+    return Math.round((completedTasks / tasks.length) * 100);
   };
   
+  // Get task statistics for a goal
   const getTaskStats = (goal: Goal) => {
-    // Simulating task stats
-    const total = Math.floor(Math.random() * 20) + 5;
-    const completed = Math.floor(Math.random() * total);
-    return { total, completed };
+    if (!goal.id || !tasksByGoal[goal.id]) {
+      return { total: 0, completed: 0 };
+    }
+    
+    const tasks = tasksByGoal[goal.id];
+    const completed = tasks.filter(task => task.completed).length;
+    return { total: tasks.length, completed };
   };
 
   const handleCreateGoal = () => {

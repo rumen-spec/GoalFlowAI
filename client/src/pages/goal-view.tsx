@@ -34,7 +34,8 @@ export default function GoalView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: goal, isLoading, error } = useQuery<GoalWithTasks>({
+  // Get the goal details
+  const { data: goal, isLoading: isGoalLoading, error: goalError } = useQuery<Goal>({
     queryKey: ["goal", goalId],
     queryFn: async () => {
       const response = await apiRequest(`/api/goals/${goalId}`, "GET");
@@ -42,6 +43,25 @@ export default function GoalView() {
     },
     enabled: !isNaN(goalId),
   });
+
+  // Get the tasks for the goal
+  const { data: tasks = [], isLoading: isTasksLoading, error: tasksError } = useQuery<Task[]>({
+    queryKey: ["goal", goalId, "tasks"],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/goals/${goalId}/tasks`, "GET");
+      return response.json();
+    },
+    enabled: !isNaN(goalId) && !!goal,
+  });
+
+  // Construct the combined goal with tasks
+  const goalWithTasks: GoalWithTasks | undefined = goal && {
+    ...goal,
+    tasks,
+    startDate: new Date(), // This would ideally come from your goal data
+    endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)), // Mock end date 3 months from now
+    description: goal.title, // Using title as description if no description exists
+  };
 
   const taskMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number | undefined, completed: boolean }) => {
@@ -52,7 +72,13 @@ export default function GoalView() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both the goal and tasks queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["goal", goalId] });
+      queryClient.invalidateQueries({ queryKey: ["goal", goalId, "tasks"] });
+      
+      // Also invalidate the dashboard tasks query to update progress bars there
+      queryClient.invalidateQueries({ queryKey: ["/api/goals/tasks"] });
+      
       toast({
         title: "Success",
         description: "Task updated successfully",
@@ -72,6 +98,9 @@ export default function GoalView() {
     taskMutation.mutate({ id: taskId, completed: !currentCompleted });
   };
 
+  const isLoading = isGoalLoading || isTasksLoading;
+  const error = goalError || tasksError;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -80,7 +109,7 @@ export default function GoalView() {
     );
   }
 
-  if (error || !goal) {
+  if (error || !goalWithTasks) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
@@ -95,29 +124,29 @@ export default function GoalView() {
     );
   }
 
-  const progressPercentage = calculateProgress(goal);
-  const { total: totalTasks, completed: completedTasks } = getTaskStats(goal);
+  const progressPercentage = calculateProgress(goalWithTasks);
+  const { total: totalTasks, completed: completedTasks } = getTaskStats(goalWithTasks);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-900">{goal.title}</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-900">{goalWithTasks.title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Description</h3>
-              <p className="mt-2 text-gray-600">{goal.description}</p>
+              <p className="mt-2 text-gray-600">{goalWithTasks.description}</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Commitment Level</h3>
-              <p className="mt-2 text-gray-600 capitalize">{goal.commitmentLevel}</p>
+              <p className="mt-2 text-gray-600 capitalize">{goalWithTasks.commitmentLevel}</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-700">Timeline</h3>
               <p className="mt-2 text-gray-600">
-                {format(new Date(goal.startDate), "MMMM d, yyyy")} - {format(new Date(goal.endDate), "MMMM d, yyyy")}
+                {format(new Date(goalWithTasks.startDate), "MMMM d, yyyy")} - {format(new Date(goalWithTasks.endDate), "MMMM d, yyyy")}
               </p>
             </div>
 
@@ -132,7 +161,7 @@ export default function GoalView() {
             <div>
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Tasks</h3>
               <ul className="space-y-3">
-                {goal.tasks?.map((task) => (
+                {goalWithTasks.tasks?.map((task: Task) => (
                   <li key={task.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <Checkbox
                       checked={task.completed}
