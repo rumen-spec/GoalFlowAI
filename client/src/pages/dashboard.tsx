@@ -76,7 +76,7 @@ export default function Dashboard() {
   };
 
   const handleCreateGoal = () => {
-    setLocation('/');
+    setLocation('/goals/new');
   };
 
   const handleViewGoal = (goalId: number) => {

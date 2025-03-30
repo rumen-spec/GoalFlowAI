@@ -18,10 +18,17 @@ export default function NewGoal() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [commitmentLevel, setCommitmentLevel] = useState<"low" | "medium" | "high">("medium");
+  const [outputFormat, setOutputFormat] = useState<"calendar" | "checklist" | "summary">("calendar");
 
   const createGoalMutation = useMutation({
-    mutationFn: (goalData: { title: string; description: string; commitmentLevel: string }) =>
-      apiRequest("/api/goals", "POST", JSON.stringify(goalData)),
+    mutationFn: async (goalData: { 
+      title: string; 
+      description: string; 
+      commitmentLevel: string;
+      outputFormat: string;
+    }) => {
+      return apiRequest("POST", "/api/goals", goalData);
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
       toast({
@@ -45,6 +52,7 @@ export default function NewGoal() {
       title,
       description,
       commitmentLevel,
+      outputFormat,
     });
   };
 
@@ -88,6 +96,20 @@ export default function NewGoal() {
                   <SelectItem value="low">Low (2-3 hours/week)</SelectItem>
                   <SelectItem value="medium">Medium (4-6 hours/week)</SelectItem>
                   <SelectItem value="high">High (7+ hours/week)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="outputFormat">Output Format</Label>
+              <Select value={outputFormat} onValueChange={(value: "calendar" | "checklist" | "summary") => setOutputFormat(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select output format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="calendar">Calendar View</SelectItem>
+                  <SelectItem value="checklist">Checklist View</SelectItem>
+                  <SelectItem value="summary">Summary View</SelectItem>
                 </SelectContent>
               </Select>
             </div>
