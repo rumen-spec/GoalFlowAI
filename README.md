@@ -1,1 +1,2 @@
-# GoalFlow AI
+# Palendr AI
+
