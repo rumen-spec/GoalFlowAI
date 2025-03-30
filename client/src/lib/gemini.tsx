@@ -1,15 +1,21 @@
 import { GoogleGenAI } from "@google/genai";
-import { CommitmentLevel } from "../lib/types"
+import { Goal, GeneratedPlan } from "../lib/types"
 
 const genAI = new GoogleGenAI({ apiKey: "AIzaSyB00zyRYAiksRyyI4eNtkg69gLY89D3efI" });
 
-export async function generatePlanTimeline(goal: string, hoursPerWeek: number, commitmentLevel: CommitmentLevel) {
+const hoursMap = new Map();
+hoursMap.set('low', 2);
+hoursMap.set('medium', 5);
+hoursMap.set('high', 7);
+
+export async function generatePlanTimeline(goal: Goal) {
     try {
       const now = new Date();
+
       
       const prompt = `
-        Create a detailed learning plan for the goal: "${goal}". 
-        The user can commit about ${hoursPerWeek} hours per week (commitment level: ${commitmentLevel}).
+        Create a detailed learning plan for the goal: "${goal.title}". 
+        The user can commit about ${hoursMap.get(goal.commitmentLevel)} hours per week (commitment level: ${goal.commitmentLevel}).
         
         Provide the plan with:
         1. A title and brief description of the overall plan
@@ -21,12 +27,12 @@ export async function generatePlanTimeline(goal: string, hoursPerWeek: number, c
         {
           "goal": {
             "title": "string",
-            "commitmentLevel": ${commitmentLevel},
+            "commitmentLevel": ${goal.commitmentLevel},
             "outputFormat": "TIMELINE"
           },
           "tasks": [
             {
-              "title": "string",
+              "title": "string" ,
               "description": "string",
               "week": number,
               "completed": false,
@@ -40,43 +46,30 @@ export async function generatePlanTimeline(goal: string, hoursPerWeek: number, c
   
         Important: Provide ONLY the JSON response, with no other text or explanation before or after it.
       `;
-  
-      // Try using the default model or gemini-pro
-      console.log("Initializing Gemini model with API key:", process.env.GEMINI_API_KEY ? "API key exists" : "No API key found");
-      
+
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: "Explain how AI works",
+        contents: prompt,
       });
-      const text = response.text();
+
+      const jsonString = response.text?.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      if (jsonString) {
+        const parsedData: GeneratedPlan = JSON.parse(jsonString);
+
+        // Optional: Convert `dueDate`, `startDate`, and `endDate` to Date objects
+        parsedData.tasks.forEach(task => task.dueDate = new Date(task.dueDate).toISOString());
+        parsedData.startDate = new Date(parsedData.startDate).toISOString();
+        parsedData.endDate = new Date(parsedData.endDate).toISOString();
       
-      // Extract JSON from the response
-      let jsonStr = text;
-      if (text.includes('```json')) {
-        // If the model wrapped the JSON in a code block, extract it
-        const match = text.match(/```json\s*([\s\S]*?)\s*```/);
-        if (match && match[1]) {
-          jsonStr = match[1];
-        }
+
+        console.log(parsedData);
+        return parsedData;
       }
-      
-      try {
-        const timeline = JSON.parse(jsonStr);
-        return timeline;
-      } catch (jsonError) {
-        console.error("Error parsing JSON response:", jsonError);
-        throw new Error("Failed to parse AI response. The model did not return valid JSON.");
-      }
+
     } catch (error) {
       console.error("Error generating plan:", error);
-      throw new Error("Failed to generate plan. Please try again later.");
+    //   throw new Error("Failed to generate plan. Please try again later.");
     }
 }
 
-export async function gemini() {
-  const response = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: "Explain how AI works",
-  });
-  console.log(response.text);
-}
+

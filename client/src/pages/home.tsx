@@ -5,7 +5,7 @@ import { CommitmentLevel, Goal, OutputFormat, GeneratedPlan } from "@/lib/types"
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import {hi} from "../lib/gemini"
+import {generatePlanTimeline} from "../lib/gemini"
 
 export default function Home() {
   const [showResults, setShowResults] = useState(false);
@@ -19,41 +19,12 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/goals", goal);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Since we don't have a real AI, we'll simulate the plan generation
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + (8 * 7)); // 8 weeks
-
-      // Generate tasks based on commitment level
-      const tasksPerWeek = data.commitmentLevel === 'low' ? 2 : data.commitmentLevel === 'medium' ? 3 : 5;
-      const tasks = [];
-      
-      for (let week = 1; week <= 8; week++) {
-        for (let task = 1; task <= tasksPerWeek; task++) {
-          const taskDate = new Date(startDate);
-          taskDate.setDate(taskDate.getDate() + (week * 7 - Math.floor(Math.random() * 7)));
-          
-          tasks.push({
-            id: week * 100 + task,
-            goalId: data.id,
-            title: `${data.title} - Step ${week}.${task}`,
-            description: `Work on ${data.title} for ${data.commitmentLevel === 'low' ? '30' : data.commitmentLevel === 'medium' ? '45' : '60'} minutes`,
-            week: week,
-            completed: false,
-            dueDate: taskDate
-          });
-        }
+      if(currentGoal) {
+        const plan = await generatePlanTimeline(currentGoal)
+        if(plan) setGeneratedPlan(plan);
       }
-
-      setGeneratedPlan({
-        goal: data,
-        tasks,
-        startDate,
-        endDate,
-        weeks: 8
-      });
-      
       setShowResults(true);
     },
     onError: (error) => {
