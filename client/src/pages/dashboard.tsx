@@ -40,15 +40,11 @@ export default function Dashboard() {
   };
 
   const handleCreateGoal = () => {
-    setLocation('/');
+    setLocation('/goals/new');
   };
 
   const handleViewGoal = (goalId: number) => {
-    // In a real app, this would navigate to a goal details page
-    toast({
-      title: "View Goal",
-      description: `Viewing details for goal #${goalId}`,
-    });
+    setLocation(`/goals/${goalId}`);
   };
 
   const formatDate = (date: Date) => {
@@ -149,7 +145,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)} className="bg-purple-500 hover:bg-purple-600 text-white border-purple-500">
+                      <Button variant="outline" size="sm" onClick={() => handleViewGoal(goal.id)}>
                         View Details
                       </Button>
                     </div>

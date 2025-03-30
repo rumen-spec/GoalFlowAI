@@ -56,11 +56,20 @@ export async function generatePlanTimeline(goal: Goal) {
       if (jsonString) {
         const parsedData: GeneratedPlan = JSON.parse(jsonString);
 
-        // Optional: Convert `dueDate`, `startDate`, and `endDate` to Date objects
-        parsedData.tasks.forEach(task => task.dueDate = new Date(task.dueDate).toISOString());
-        parsedData.startDate = new Date(parsedData.startDate).toISOString();
-        parsedData.endDate = new Date(parsedData.endDate).toISOString();
-      
+        // Convert date strings to Date objects
+        parsedData.tasks.forEach(task => {
+            if (task.dueDate) {
+                task.dueDate = new Date(task.dueDate);
+            }
+        });
+        
+        if (parsedData.startDate) {
+            parsedData.startDate = new Date(parsedData.startDate);
+        }
+        
+        if (parsedData.endDate) {
+            parsedData.endDate = new Date(parsedData.endDate);
+        }
 
         console.log(parsedData);
         return parsedData;

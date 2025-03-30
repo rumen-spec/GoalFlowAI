@@ -9,12 +9,16 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
+import GoalView from "@/pages/goal-view";
+import NewGoal from "@/pages/new-goal";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <ProtectedRoute path="/dashboard" component={Dashboard} />
+      <ProtectedRoute path="/goals/new" component={NewGoal} />
+      <ProtectedRoute path="/goals/:id" component={GoalView} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
